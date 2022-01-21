@@ -8,6 +8,15 @@
 #
 # You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#' Parse a SLURM accounting time duration to an ISO 8601 time duration.
+#'
+#' @param duration a character vector with one element.
+#'
+#' @return a character vector with one element.
+#' @export
+#'
+#' @examples
+#' parseSlurmDuration("23720-4:20:69")
 parseSlurmDuration <- function(duration) {
   stopifnot(is.character(duration), length(duration) == 1)
   duration_strings <- strsplit(duration, "[:-]")[[1]]

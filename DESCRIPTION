@@ -1,12 +1,22 @@
 Package: parseSlurmDuration
-Title: What the Package Does (One Line, Title Case)
+Title: Parses SLURM accounting times and outputs ISO 8601 durations
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Bryce", "Carson", , "bcars268@mtroyal.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-1362-2998"))
+Description: Converts the SLURM `sbatch` and `sacct` commands' duration to ISO 8601 durations.
+    The SLURM accounting fields, describing job statistics, and the `sbatch`
+    command's `-t` & `--time` options' duration format to ISO 8601 durations.
+    The format used by SLURM is ISO-like, being similar to the T(ime) portion
+    of an ISO 8601 date-time string, whereinstead the day field is separated
+    from the time field(s) with a hyphen/minus instead of a capital T.
+    This package is quite simple, with no dependencies and only suggests
+    the lubridate package. You may wish to use another package for working with
+    dates, as long as it supports IS0 8601 durations.
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
