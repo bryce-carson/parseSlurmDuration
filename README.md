@@ -34,12 +34,42 @@ devtools::install_github("bryce-carson/parseSlurmDuration")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-representing Karl Marx’ life duration in days, and also the 420–69 meme.
-Spicy.
+This example shows the absolute minimum necessary to convert some SLURM
+accounting data to a format that is usable with lubridate and the rest
+of the Tidyverse for any analysis you might want to do.
 
 ``` r
 library(parseSlurmDuration)
-parseSlurmDuration("23720-4:20:69")
-#> [1] "P23720DT4H20M69S"
+library(lubridate) # as.duration() interests us; the rest is standard data analysis and lubridate usage therein.
+#> 
+#> Attaching package: 'lubridate'
+#> The following objects are masked from 'package:base':
+#> 
+#>     date, intersect, setdiff, union
+
+# Get some SLURM accounting information that was found online. :)
+html <- rvest::read_html("https://ubccr.freshdesk.com/support/solutions/articles/5000686909-how-to-retrieve-job-history-and-accounting")
+text <- html %>% rvest::html_nodes("#article-body > div > div > div > div > p:nth-child(36) > font > font") %>% rvest::html_text()
+text <- text %>% stringr::str_remove("sacct 2015-01-01 ccrgst3") %>% stringr::str_remove("(.{107})(.{108})") %>% strsplit("\\s+") %>% unlist()
+slurmAccountingTable <- tibble(JobID = NA, User = NA, Partition = NA, NNodes = NA, NCPUs = NA, Start = NA, Elapsed = NA, State = NA, Priority = NA)
+for (i in seq.int(1, 9*31, by = 9)) {
+  rowToAdd <- text[seq(i,i+8)] %>% matrix(nrow = 1)
+  colnames(rowToAdd) <- c("JobID", "User", "Partition", "NNodes", "NCPUs", "Start", "Elapsed", "State", "Priority")
+  rowToAdd %<>% as_tibble()
+  slurmAccountingTable %<>% bind_rows(rowToAdd)
+}
+slurmAccountingTable %<>% filter(!is.na(across()))
+
+# Convert the Elapsed field to ISO format, then use lubridate to convert it to a class of duration for later analysis.
+slurmAccountingTable %<>% mutate(Elapsed = map_chr(Elapsed, parseSlurmDuration) %>% as.duration(),
+                                 Start = as_datetime(Start))
+
+# Now we can calculate a field that was missing from the data we downloaded,
+slurmAccountingTable %<>% mutate(End = Start + Elapsed)
+
+# and plot the data to see how different jobs compare
+filter(slurmAccountingTable, State == "COMPLETED") %>% ggplot() +
+  geom_col(mapping = aes(x = NCPUs, y = Elapsed))
 ```
+
+<img src="man/figures/README-example-1.png" width="100%" />
